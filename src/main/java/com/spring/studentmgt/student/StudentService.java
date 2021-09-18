@@ -3,7 +3,10 @@ package com.spring.studentmgt.student;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,6 +42,23 @@ public class StudentService { // Service layer
             throw new IllegalStateException("Student with id " + id + " does not exist");
         }
         studentRepository.deleteById(id);
+    }
+
+    @Transactional // with this, no need to define the query, can use setter to update
+    public void updateStudent(Long id, String name, String email) {
+        Student student = studentRepository.findById(id)
+        .orElseThrow( () -> new IllegalStateException("Student with id " + id + " does not exist"));
+        
+        if (name != null && name.length() > 0 && !Objects.equals(student.getName(), name)) {
+            student.setName(name);
+        }
+        if (email != null && email.length() > 0 && !Objects.equals(student.getEmail(), email)) {
+            Optional<Student> s = studentRepository.findByEmail(email);
+            if (s.isPresent()) {
+                throw new IllegalStateException("Email taken"); 
+            }
+            student.setEmail(email);
+        }
     }
   
 }
